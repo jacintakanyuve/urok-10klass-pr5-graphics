@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Информатика 10 класс: Практическая работа 5. Дискретизация графической информации</title>
+  <style>
+    :root {
+      --bg: #f1f5f9;
+      --surface: #ffffff;
+      --surface-soft: #f8fafc;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --primary-light: #dbeafe;
+      --accent: #7c3aed;
+      --accent-light: #ede9fe;
+      --success: #059669;
+      --success-light: #d1fae5;
+      --warning: #d97706;
+      --warning-light: #fef3c7;
+      --danger: #dc2626;
+      --danger-light: #fee2e2;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --border: #cbd5e1;
+      --radius: 16px;
+      --shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding-bottom: 56px;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+    }
+
+    .topbar-inner {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .topbar-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 4px 12px;
+      border-radius: 999px;
+    }
+
+    .timer-box {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--surface-soft);
+      border: 1px solid var(--border);
+      padding: 4px 12px;
+      border-radius: 999px;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      transition: width 0.35s ease;
+    }
+
+    .nav-pills {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-top: 10px;
+      scrollbar-width: none;
+    }
+
+    .nav-pills::-webkit-scrollbar {
+      display: none;
+    }
+
+    .nav-pill {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.83rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .nav-pill.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .nav-pill.done {
+      border-color: var(--success);
+      color: var(--success);
+      background: var(--success-light);
+    }
+
+    .nav-pill.active.done {
+      background: var(--success);
+      color: #fff;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 20px auto 0;
+      padding: 0 16px;
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(203, 213, 225, 0.75);
+    }
+
+    .module {
+      display: none;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .module.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 {
+      font-size: 1.55rem;
+      line-height: 1.25;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      font-size: 1.3rem;
+      margin-bottom: 12px;
+      color: var(--primary-dark);
+    }
+
+    h3 {
+      font-size: 1.08rem;
+      margin: 16px 0 8px;
+    }
+
+    p {
+      margin-bottom: 12px;
+    }
+
+    ul {
+      margin: 8px 0 14px 20px;
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+
+    .time-tag {
+      display: inline-block;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--accent);
+      background: var(--accent-light);
+      padding: 3px 10px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .callout {
+      background: var(--surface-soft);
+      border-left: 4px solid var(--primary);
+      padding: 14px 16px;
+      border-radius: 0 12px 12px 0;
+      margin: 14px 0;
+    }
+
+    .callout.warn {
+      border-left-color: var(--warning);
+      background: var(--warning-light);
+    }
+
+    .callout.success {
+      border-left-color: var(--success);
+      background: var(--success-light);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+      margin: 14px 0;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+      margin: 14px 0;
+    }
+
+    .info-box {
+      background: var(--surface-soft);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .info-box strong {
+      display: block;
+      font-size: 1.02rem;
+      margin-bottom: 6px;
+      color: var(--primary-dark);
+    }
+
+    .formula-box {
+      background: #0f172a;
+      color: #38bdf8;
+      font-family: "Courier New", Courier, monospace;
+      font-weight: 700;
+      padding: 12px 16px;
+      border-radius: 12px;
+      margin: 12px 0;
+      font-size: 0.98rem;
+      text-align: center;
+      line-height: 1.7;
+    }
+
+    .interactive-zone {
+      background: #f8fafc;
+      border: 2px dashed #93c5fd;
+      border-radius: var(--radius);
+      padding: 18px;
+      margin-top: 18px;
+    }
+
+    .interactive-title {
+      font-weight: 800;
+      font-size: 1.05rem;
+      color: var(--primary-dark);
+      margin-bottom: 8px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 18px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-secondary {
+      background: #e2e8f0;
+      color: var(--text);
+    }
+
+    .btn-secondary:hover {
+      background: #cbd5e1;
+    }
+
+    .btn-success {
+      background: var(--success);
+    }
+
+    .btn-success:hover {
+      background: #047857;
+    }
+
+    .btn-sm {
+      padding: 7px 14px;
+      font-size: 0.86rem;
+      border-radius: 8px;
+    }
+
+    .nav-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-top: 22px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 1rem;
+      margin: 8px 0 12px;
+    }
+
+    .sort-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .choice-btn {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .choice-btn:hover {
+      background: #e2e8f0;
+    }
+
+    .choice-btn.selected {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    /* Симулятор дискретизации */
+    .sim-layout {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .canvas-frame {
+      background: #0f172a;
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    canvas {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      display: block;
+      margin: 0 auto;
+    }
+
+    /* Пиксельная сетка 8x8 */
+    .pixel-lab {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      align-items: start;
+      margin-top: 12px;
+    }
+
+    .pixel-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 3px;
+      max-width: 272px;
+      margin: 0 auto;
+      background: #94a3b8;
+      padding: 4px;
+      border-radius: 10px;
+    }
+
+    .px-cell {
+      aspect-ratio: 1 / 1;
+      background: #ffffff;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+
+    .px-cell.on {
+      background: #1d4ed8;
+    }
+
+    .bit-rows {
+      font-family: "Courier New", Courier, monospace;
+      background: #0f172a;
+      color: #38bdf8;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 0.92rem;
+      line-height: 1.55;
+      letter-spacing: 2px;
+    }
+
+    /* RGB микшер */
+    .rgb-preview {
+      height: 74px;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Courier New", Courier, monospace;
+      font-weight: 800;
+      font-size: 1rem;
+      margin-bottom: 10px;
+    }
+
+    .slider-row {
+      margin-bottom: 8px;
+    }
+
+    .slider-row label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    .slider-row input[type="range"] {
+      width: 100%;
+    }
+
+    /* Расчётные задачи */
+    .calc-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+
+    .calc-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .calc-input {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      width: 165px;
+    }
+
+    .hint-box {
+      display: none;
+      margin-top: 10px;
+      padding: 10px 12px;
+      background: var(--warning-light);
+      border-left: 3px solid var(--warning);
+      border-radius: 0 8px 8px 0;
+      font-size: 0.88rem;
+    }
+
+    /* Тест */
+    .quiz-q {
+      background: var(--surface-soft);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+
+    .quiz-opt {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 10px 14px;
+      margin-top: 8px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.93rem;
+      transition: all 0.15s;
+    }
+
+    .quiz-opt:hover {
+      border-color: var(--primary);
+    }
+
+    .quiz-opt.selected {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      font-weight: 600;
+    }
+
+    .quiz-opt.correct {
+      border-color: var(--success);
+      background: var(--success-light);
+      color: #065f46;
+      font-weight: 700;
+    }
+
+    .quiz-opt.wrong {
+      border-color: var(--danger);
+      background: var(--danger-light);
+      color: #991b1b;
+    }
+
+    /* Сертификат */
+    .cert-box {
+      border: 3px solid var(--primary);
+      background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
+      border-radius: 18px;
+      padding: 24px;
+      text-align: center;
+      margin-top: 18px;
+    }
+
+    .cert-grade {
+      display: inline-block;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--success);
+      background: var(--success-light);
+      padding: 8px 22px;
+      border-radius: 12px;
+      margin: 12px 0;
+    }
+
+    .feedback {
+      margin-top: 8px;
+      font-weight: 600;
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 600px) {
+      .card { padding: 16px; }
+      h1 { font-size: 1.32rem; }
+      h2 { font-size: 1.16rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-row">
+        <span class="badge">Информатика • 10 класс</span>
+        <span class="timer-box" id="timerDisplay">Время урока: 00:00 / 45:00</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressBar"></div>
+      </div>
+      <nav class="nav-pills" id="navPills">
+        <button class="nav-pill active" onclick="goToStep(0)">Старт</button>
+        <button class="nav-pill" onclick="goToStep(1)">1. Теория и симулятор</button>
+        <button class="nav-pill" onclick="goToStep(2)">2. Практика: Кодирование</button>
+        <button class="nav-pill" onclick="goToStep(3)">3. Практика: Расчёты</button>
+        <button class="nav-pill" onclick="goToStep(4)">4. Итоговый контроль</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- ШАГ 0: ВВЕДЕНИЕ -->
+    <section class="module active" id="step-0">
+      <div class="card">
+        <span class="time-tag">Практическая работа №5 • 45 минут</span>
+        <h1>Дискретизация графической информации</h1>
+        <p>Изображения в окружающем мире непрерывны (аналоговы): цвета и полутона плавно перетекают друг в друга. Чтобы сохранить фотографию или рисунок в памяти компьютера, изображение подвергают <strong>дискретизации</strong> — разбивают на отдельные элементы и кодируют числами.</p>
+        <p>На этом уроке ты исследуешь влияние разрешения и глубины цвета на качество и размер файла, выполнишь два блока практических заданий и пройдёшь итоговый контроль.</p>
+
+        <div class="callout">
+          <strong>Справочные соотношения единиц (используются в расчётах):</strong><br />
+          • 1 байт = 8 бит &nbsp;|&nbsp; 1 Кбайт = 1024 байт &nbsp;|&nbsp; 1 Мбайт = 1024 Кбайт<br />
+          • 1 дюйм (inch) = 2,54 см &nbsp;|&nbsp; DPI (dots per inch) — количество точек на 1 дюйм длины
+        </div>
+
+        <label for="studentNameInput"><strong>Введи фамилию, имя и класс перед началом работы:</strong></label>
+        <input type="text" id="studentNameInput" class="input-field" placeholder="Например: Белов Андрей, 10-А" />
+
+        <div class="nav-footer">
+          <span></span>
+          <button class="btn" onclick="startLesson()">Приступить к работе →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ШАГ 1: ТЕОРИЯ И СИМУЛЯТОР ДИСКРЕТИЗАЦИИ -->
+    <section class="module" id="step-1">
+      <div class="card">
+        <span class="time-tag">Этап 1 • Рекомендуемое время: 10 минут</span>
+        <h2>1. Пространственная дискретизация и квантование цвета</h2>
+        <p>Преобразование графической информации из аналоговой формы в цифровую включает два процесса:</p>
+
+        <div class="grid-2">
+          <div class="info-box">
+            <strong>Пространственная дискретизация</strong>
+            Разбиение изображения на сетку мельчайших элементов — <strong>пикселей</strong>. Чем выше <em>разрешение</em> ($K = W \times H$), тем мельче пиксели и чётче контуры.
+          </div>
+          <div class="info-box">
+            <strong>Квантование (кодирование цвета)</strong>
+            Замена плавного спектра цветов конечным набором значений (палитрой). Число цветов $N$ связано с <strong>глубиной цвета</strong> $i$ (в битах на 1 пиксель).
+          </div>
+        </div>
+
+        <div class="formula-box">
+          N = 2<sup>i</sup> &nbsp;&nbsp;|&nbsp;&nbsp; K = W × H &nbsp;&nbsp;|&nbsp;&nbsp; I = K × i = W × H × i (бит)
+        </div>
+
+        <p>В модели <strong>RGB</strong> цвет каждого пикселя формируется смешением трёх базовых каналов: красного (Red), зелёного (Green) и синего (Blue). В режиме <em>True Color</em> на каждый канал отводится 8 бит (значения от 0 до 255), итого $i = 24\text{ бита}$ (3 байта) на пиксель и $N = 2^{24} = 16\,777\,216$ цветов.</p>
+
+        <div class="interactive-zone">
+          <div class="interactive-title">Интерактивный симулятор дискретизации и квантования</div>
+          <p style="font-size: 0.92rem;">Изменяй сетку пикселей ($W \times H$) и глубину цвета ($i$), чтобы пронаблюдать ступенчатость (пикселизацию), потерю полутонов и изменение информационного объёма $I$:</p>
+
+          <div class="sim-layout">
+            <div class="canvas-frame">
+              <canvas id="discCanvas" width="256" height="256"></canvas>
+            </div>
+            <div>
+              <div style="margin-bottom: 10px;">
+                <strong>1. Пространственное разрешение ($W \times H$):</strong>
+                <div class="sort-buttons" style="margin-top: 6px;" id="resBtns">
+                  <button class="choice-btn" onclick="setSimRes(8, this)">8×8</button>
+                  <button class="choice-btn selected" onclick="setSimRes(16, this)">16×16</button>
+                  <button class="choice-btn" onclick="setSimRes(32, this)">32×32</button>
+                  <button class="choice-btn" onclick="setSimRes(64, this)">64×64</button>
+                </div>
+              </div>
+
+              <div style="margin-bottom: 12px;">
+                <strong>2. Глубина цвета ($i$) и палитра ($N = 2^i$):</strong>
+                <div class="sort-buttons" style="margin-top: 6px;" id="depthBtns">
+                  <button class="choice-btn" onclick="setSimDepth(1, this)">1 бит (2 цвета)</button>
+                  <button class="choice-btn" onclick="setSimDepth(2, this)">2 бита (4 цвета)</button>
+                  <button class="choice-btn selected" onclick="setSimDepth(4, this)">4 бита (16 цветов)</button>
+                  <button class="choice-btn" onclick="setSimDepth(24, this)">24 бита (True Color)</button>
+                </div>
+              </div>
+
+              <div class="info-box" id="simStatsBox"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="nav-footer">
+          <button class="btn btn-secondary" onclick="goToStep(0)">← Назад</button>
+          <button class="btn" onclick="markStepDone(1); goToStep(2)">Дальше: Задание 1 (Кодирование) →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ШАГ 2: ПРАКТИЧЕСКАЯ РАБОТА — ЗАДАНИЕ 1 -->
+    <section class="module" id="step-2">
+      <div class="card">
+        <span class="time-tag">Этап 2 • Рекомендуемое время: 12 минут</span>
+        <h2>2. Практическая работа №5 — Задание 1: Побитовое кодирование растра и RGB</h2>
+        <p>В монохромном растровом изображении каждый пиксель кодируется <strong>1 битом</strong>: <code>0</code> — белый фон, <code>1</code> — закрашенный пиксель.</p>
+
+        <div class="interactive-zone">
+          <div class="interactive-title">Практическое задание 1.1: Декодирование монохромного спрайта 8×8</div>
+          <p style="font-size: 0.92rem;">Нажимай на клетки сетки $8 \times 8$ слева, чтобы восстановить закодированный значок по строкам двоичного кода справа (<code>1</code> — синий пиксель, <code>0</code> — белый):</p>
+
+          <div class="pixel-lab">
+            <div>
+              <div class="pixel-grid" id="pixelGrid8"></div>
+              <div style="text-align: center; margin-top: 10px; display: flex; justify-content: center; gap: 8px;">
+                <button class="btn btn-sm btn-secondary" onclick="clearPixelGrid()">Очистить сетку</button>
+                <button class="btn btn-sm" onclick="checkPixelGrid()">Проверить рисунок</button>
+              </div>
+            </div>
+            <div>
+              <div class="bit-rows" id="targetBitRows"></div>
+              <div class="info-box" style="margin-top: 10px; font-size: 0.9rem;">
+                <strong>Параметры этого файла:</strong>
+                Разрешение: $8 \times 8 = 64$ пикселя.<br />
+                Глубина цвета: $i = 1$ бит ($N = 2^1 = 2$ цвета).<br />
+                Информационный объём: $64 \times 1\text{ бит} = 64\text{ бита} = \mathbf{8\text{ байт}}$.
+              </div>
+            </div>
+          </div>
+          <div class="feedback" id="pxFeedback"></div>
+        </div>
+
+        <div class="interactive-zone">
+          <div class="interactive-title">Практическое задание 1.2: Кодирование цвета в модели RGB (24 бита)</div>
+          <p style="font-size: 0.92rem;">Передвигай ползунки каналов R, G, B (каждый канал занимает 1 байт = 8 бит, значения от 0 до 255) и посмотри, как формируется 24-битный код пикселя:</p>
+
+          <div class="rgb-preview" id="rgbPreviewBox">rgb(37, 99, 235) | #2563EB</div>
+
+          <div class="slider-row">
+            <label style="color: #dc2626;">Red (Красный, 8 бит): <span id="rVal">37</span></label>
+            <input type="range" id="rRange" min="0" max="255" value="37" oninput="updateRgbMixer()" />
+          </div>
+          <div class="slider-row">
+            <label style="color: #059669;">Green (Зелёный, 8 бит): <span id="gVal">99</span></label>
+            <input type="range" id="gRange" min="0" max="255" value="99" oninput="updateRgbMixer()" />
+          </div>
+          <div class="slider-row">
+            <label style="color: #2563eb;">Blue (Синий, 8 бит): <span id="bVal">235</span></label>
+            <input type="range" id="bRange" min="0" max="255" value="235" oninput="updateRgbMixer()" />
+          </div>
+
+          <div class="bit-rows" id="rgbBinaryOut" style="letter-spacing: 1px; font-size: 0.86rem; text-align: center;"></div>
+        </div>
+
+        <div class="nav-footer">
+          <button class="btn btn-secondary" onclick="goToStep(1)">← Назад</button>
+          <button class="btn" onclick="goToStep(3)">Дальше: Задание 2 (Расчёты) →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ШАГ 3: ПРАКТИЧЕСКАЯ РАБОТА — ЗАДАНИЕ 2 (РАСЧЁТНЫЕ ЗАДАЧИ) -->
+    <section class="module" id="step-3">
+      <div class="card">
+        <span class="time-tag">Этап 3 • Рекомендуемое время: 13 минут</span>
+        <h2>3. Практическая работа №5 — Задание 2: Расчёт параметров растровой графики</h2>
+        <p>Выполни 4 расчётные задачи практической работы. Вписывай в поле ответа <strong>только целое число</strong> (без единиц измерения). Если возникнет затруднение, воспользуйся кнопкой подсказки.</p>
+
+        <div id="calcTasksContainer"></div>
+
+        <button class="btn" onclick="checkAllCalcTasks()">Проверить все расчёты</button>
+        <div class="feedback" id="calcAllFeedback"></div>
+
+        <div class="nav-footer">
+          <button class="btn btn-secondary" onclick="goToStep(2)">← Назад</button>
+          <button class="btn" onclick="goToStep(4)">Перейти к итоговому контролю →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ШАГ 4: ИТОГОВЫЙ КОНТРОЛЬ И КАРТОЧКА -->
+    <section class="module" id="step-4">
+      <div class="card">
+        <span class="time-tag">Этап 4 • Рекомендуемое время: 10 минут</span>
+        <h2>4. Итоговый контроль по практической работе №5</h2>
+        <p>Ответь на 8 контрольных вопросов по теме. После нажатия на кнопку ниже появится твоя итоговая оценка и карточка прохождения работы.</p>
+
+        <div id="finalQuizContainer"></div>
+
+        <button class="btn btn-success" style="width: 100%; margin-top: 10px;" onclick="finishLesson()">Завершить практическую работу и получить оценку</button>
+
+        <div id="certificateSection" style="display: none;">
+          <div class="cert-box">
+            <div style="font-size: 0.88rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 700;">
+              Отчёт о выполнении практической работы №5 • Информатика 10 класс
+            </div>
+            <h2 id="certStudentName" style="margin: 8px 0; color: var(--text);">Ученик 10 класса</h2>
+            <p style="margin-bottom: 4px;">Тема: «Дискретизация графической информации»</p>
+            <div class="cert-grade" id="certGradeText">Оценка: 5 (Отлично)</div>
+            <p id="certStats" style="font-weight: 600;"></p>
+            <p id="certCode" style="font-family: monospace; font-size: 0.9rem; color: var(--text-muted);"></p>
+            <div class="callout success" style="text-align: left; margin-top: 12px;">
+              Сделай скриншот этой карточки и отправь учителю для выставления оценки в журнал!
+            </div>
+          </div>
+        </div>
+
+        <div class="nav-footer">
+          <button class="btn btn-secondary" onclick="goToStep(3)">← Вернуться к расчётам</button>
+          <button class="btn btn-secondary btn-sm" onclick="resetAll()">Пройти заново</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // --- СОСТОЯНИЕ ---
+    const state = {
+      currentStep: 0,
+      completedSteps: [false, false, false, false, false],
+      secondsElapsed: 0,
+      studentName: "",
+      simRes: 16,
+      simDepth: 4
+    };
+
+    // --- ТАЙМЕР ---
+    setInterval(() => {
+      state.secondsElapsed++;
+      const m = String(Math.floor(state.secondsElapsed / 60)).padStart(2, "0");
+      const s = String(state.secondsElapsed % 60).padStart(2, "0");
+      document.getElementById("timerDisplay").textContent = `Время урока: ${m}:${s} / 45:00`;
+    }, 1000);
+
+    // --- НАВИГАЦИЯ ---
+    function goToStep(idx) {
+      document.querySelectorAll(".module").forEach((el, i) => el.classList.toggle("active", idx === i));
+      document.querySelectorAll(".nav-pill").forEach((pill, i) => {
+        pill.classList.toggle("active", idx === i);
+        pill.classList.toggle("done", state.completedSteps[i]);
+      });
+      state.currentStep = idx;
+      updateProgress();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function markStepDone(idx) {
+      state.completedSteps[idx] = true;
+      const pills = document.querySelectorAll(".nav-pill");
+      if (pills[idx]) pills[idx].classList.add("done");
+      updateProgress();
+    }
+
+    function updateProgress() {
+      const done = state.completedSteps.filter(Boolean).length;
+      const pct = Math.min(100, Math.round((done / 4) * 100));
+      document.getElementById("progressBar").style.width = `${pct}%`;
+    }
+
+    function startLesson() {
+      const val = document.getElementById("studentNameInput").value.trim();
+      state.studentName = val || "Ученик 10 класса";
+      markStepDone(0);
+      goToStep(1);
+    }
+
+    // --- ЭТАП 1: СИМУЛЯТОР ДИСКРЕТИЗАЦИИ (CANVAS) ---
+    function setSimRes(res, btn) {
+      state.simRes = res;
+      document.getElementById("resBtns").querySelectorAll(".choice-btn").forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+      renderDiscretization();
+    }
+
+    function setSimDepth(depth, btn) {
+      state.simDepth = depth;
+      document.getElementById("depthBtns").querySelectorAll(".choice-btn").forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+      renderDiscretization();
+    }
+
+    function quantizeChannel(val, levels) {
+      if (levels >= 256) return val;
+      const step = 255 / (levels - 1);
+      return Math.round(Math.round(val / step) * step);
+    }
+
+    function renderDiscretization() {
+      const canvas = document.getElementById("discCanvas");
+      const ctx = canvas.getContext("2d");
+      const size = canvas.width; // 256
+      const res = state.simRes;
+      const depth = state.simDepth;
+      const cell = size / res;
+
+      for (let row = 0; row < res; row++) {
+        for (let col = 0; col < res; col++) {
+          const nx = (col + 0.5) / res;
+          const ny = (row + 0.5) / res;
+
+          // Исходная непрерывная сцена: закатное небо, солнце и гора
+          let r = 30 + ny * 180;
+          let g = 60 + (1 - ny) * 140;
+          let b = 220 - ny * 130;
+
+          const distSun = Math.hypot(nx - 0.65, ny - 0.32);
+          if (distSun < 0.22) {
+            const glow = 1 - distSun / 0.22;
+            r = Math.min(255, r + glow * 210);
+            g = Math.min(255, g + glow * 170);
+            b = Math.max(0, b - glow * 120);
+          }
+
+          if (ny > 0.68 - 0.22 * Math.sin(nx * Math.PI)) {
+            r = 25 + nx * 35;
+            g = 95 + (1 - ny) * 90;
+            b = 65;
+          }
+
+          // Квантование в зависимости от глубины цвета
+          if (depth === 1) {
+            const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+            const c = lum > 128 ? 255 : 15;
+            r = c; g = c; b = c;
+          } else if (depth === 2) {
+            // 4 цвета (2 бита)
+            r = quantizeChannel(r, 2);
+            g = quantizeChannel(g, 2);
+            b = quantizeChannel(b, 2);
+            const avg = (r + g + b) / 3;
+            if (avg > 170) { r = 250; g = 230; b = 120; }
+            else if (avg > 110) { r = 70; g = 150; b = 230; }
+            else if (avg > 60) { r = 40; g = 130; b = 80; }
+            else { r = 25; g = 35; b = 60; }
+          } else if (depth === 4) {
+            // 16 цветов (постеризация)
+            r = quantizeChannel(r, 3);
+            g = quantizeChannel(g, 3);
+            b = quantizeChannel(b, 2);
+          } else {
+            r = Math.round(r);
+            g = Math.round(g);
+            b = Math.round(b);
+          }
+
+          ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+          ctx.fillRect(col * cell, row * cell, Math.ceil(cell), Math.ceil(cell));
+        }
+      }
+
+      // Сетка пикселей при крупном зерне
+      if (res <= 32) {
+        ctx.strokeStyle = "rgba(15, 23, 42, 0.22)";
+        ctx.lineWidth = 1;
+        for (let i = 1; i < res; i++) {
+          ctx.beginPath(); ctx.moveTo(i * cell, 0); ctx.lineTo(i * cell, size); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(0, i * cell); ctx.lineTo(size, i * cell); ctx.stroke();
+        }
+      }
+
+      const pixels = res * res;
+      const palette = depth === 24 ? "16 777 216 (2²⁴)" : `${Math.pow(2, depth)} (2^${depth})`;
+      const bits = pixels * depth;
+      const bytes = bits / 8;
+
+      document.getElementById("simStatsBox").innerHTML = `
+        <strong>Параметры текущего кадра:</strong>
+        Количество пикселей ($K$): <strong>${pixels}</strong> (${res}×${res})<br />
+        Цветов в палитре ($N$): <strong>${palette}</strong><br />
+        Объём в битах ($I$): <strong>${bits} бит</strong><br />
+        Объём в байтах: <strong>${bytes} байт</strong>
+      `;
+    }
+    renderDiscretization();
+
+    // --- ЭТАП 2: ПИКСЕЛЬНАЯ СЕТКА 8x8 И RGB МИКШЕР ---
+    // Закодированный значок (сердце / стрелка вверх):
+    const targetSprite = [
+      [0,0,0,1,1,0,0,0],
+      [0,0,1,1,1,1,0,0],
+      [0,1,1,1,1,1,1,0],
+      [1,1,0,1,1,0,1,1],
+      [0,0,0,1,1,0,0,0],
+      [0,0,0,1,1,0,0,0],
+      [0,0,0,1,1,0,0,0],
+      [0,0,1,1,1,1,0,0]
+    ];
+    const userSprite = Array.from({ length: 8 }, () => Array(8).fill(0));
+
+    function initPixelLab() {
+      const grid = document.getElementById("pixelGrid8");
+      grid.innerHTML = "";
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const cell = document.createElement("div");
+          cell.className = "px-cell";
+          cell.id = `px-${r}-${c}`;
+          cell.onclick = () => togglePixel(r, c);
+          grid.appendChild(cell);
+        }
+      }
+
+      const codeBox = document.getElementById("targetBitRows");
+      codeBox.innerHTML = targetSprite
+        .map((row, idx) => `Строка ${idx + 1}: ${row.join("")}`)
+        .join("<br />");
+    }
+
+    function togglePixel(r, c) {
+      userSprite
