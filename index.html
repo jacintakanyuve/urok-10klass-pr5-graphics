@@ -1016,4 +1016,279 @@
     }
 
     function togglePixel(r, c) {
-      userSprite
+      userSprite[r][c] = userSprite[r][c] === 0 ? 1 : 0;
+      document.getElementById(`px-${r}-${c}`).classList.toggle("on", userSprite[r][c] === 1);
+    }
+
+    function clearPixelGrid() {
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          userSprite[r][c] = 0;
+          document.getElementById(`px-${r}-${c}`).classList.remove("on");
+        }
+      }
+      document.getElementById("pxFeedback").textContent = "";
+    }
+
+    function checkPixelGrid() {
+      let errors = 0;
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          if (userSprite[r][c] !== targetSprite[r][c]) errors++;
+        }
+      }
+      const fb = document.getElementById("pxFeedback");
+      if (errors === 0) {
+        fb.style.color = "var(--success)";
+        fb.textContent = "Точно! Все 64 бита декодированы верно, растровый рисунок восстановлен!";
+        markStepDone(2);
+      } else {
+        fb.style.color = "var(--warning)";
+        fb.textContent = `Не совпадает клеток: ${errors}. Сверь единицы и нули построчно.`;
+      }
+    }
+
+    function updateRgbMixer() {
+      const r = Number(document.getElementById("rRange").value);
+      const g = Number(document.getElementById("gRange").value);
+      const b = Number(document.getElementById("bRange").value);
+
+      document.getElementById("rVal").textContent = r;
+      document.getElementById("gVal").textContent = g;
+      document.getElementById("bVal").textContent = b;
+
+      const hex = "#" + [r, g, b].map(x => x.toString(16).padStart(2, "0").toUpperCase()).join("");
+      const preview = document.getElementById("rgbPreviewBox");
+      preview.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+      const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+      preview.style.color = lum > 140 ? "#0f172a" : "#ffffff";
+      preview.textContent = `rgb(${r}, ${g}, ${b}) | ${hex}`;
+
+      const binR = r.toString(2).padStart(8, "0");
+      const binG = g.toString(2).padStart(8, "0");
+      const binB = b.toString(2).padStart(8, "0");
+      document.getElementById("rgbBinaryOut").textContent = `24-битный код пикселя: ${binR} ${binG} ${binB}`;
+    }
+
+    initPixelLab();
+    updateRgbMixer();
+
+    // --- ЭТАП 3: РАСЧЁТНЫЕ ЗАДАЧИ ПРАКТИЧЕСКОЙ РАБОТЫ ---
+    const calcTasks = [
+      {
+        id: "c1",
+        title: "Задача 1. Информационный объём фотографии",
+        text: "Несжатое растровое изображение размером 1024 × 768 пикселей сохранено с глубиной цвета 24 бита. Определите информационный объём файла в Кбайтах (1 Кбайт = 1024 байт).",
+        unit: "Кбайт",
+        answer: 2304,
+        hint: "24 бита = 3 байта на пиксель. Объём в байтах: I = 1024 × 768 × 3. Чтобы перевести в Кбайты, разделите на 1024: (1024 × 768 × 3) / 1024 = 768 × 3."
+      },
+      {
+        id: "c2",
+        title: "Задача 2. Изменение палитры цветов",
+        text: "В графическом редакторе уменьшили палитру изображения с 65 536 цветов до 16 цветов, не меняя разрешение. Во сколько раз уменьшился информационный объём изображения?",
+        unit: "раз(а)",
+        answer: 4,
+        hint: "Найдите глубину цвета i по формуле N = 2^i: для 65 536 цветов i₁ = 16 бит (так как 2¹⁶ = 65 536), а для 16 цветов i₂ = 4 бита (2⁴ = 16). Разделите i₁ на i₂."
+      },
+      {
+        id: "c3",
+        title: "Задача 3. Сканирование с заданным DPI",
+        text: "Сканер с разрешением 254 dpi (1 дюйм = 2,54 см) сканирует квадратный документ размером 10 см × 10 см в режиме оттенков серого (256 градаций). Чему равен информационный объём полученного файла в байтах?",
+        unit: "байт",
+        answer: 1000000,
+        hint: "Переведите 10 см в дюймы: 10 / 2,54 дюйма. Умножьте на 254 dpi: (10 / 2,54) × 254 = 1000 пикселей по каждой стороне. Всего K = 1000 × 1000 = 1 000 000 пикселей. Для 256 градаций i = 8 бит = 1 байт."
+      },
+      {
+        id: "c4",
+        title: "Задача 4. Определение размера палитры по объёму памяти",
+        text: "Для хранения несжатого растрового изображения размером 512 × 256 пикселей выделено 64 Кбайт памяти. Какое максимальное количество цветов (N) можно использовать в палитре этого изображения?",
+        unit: "цветов",
+        answer: 16,
+        hint: "Переведите 64 Кбайт в биты: I = 64 × 1024 × 8 = 524 288 бит. Найдите число пикселей: K = 512 × 256 = 131 072. Глубина цвета i = I / K = 4 бита. Количество цветов N = 2⁴."
+      }
+    ];
+
+    function renderCalcTasks() {
+      const box = document.getElementById("calcTasksContainer");
+      box.innerHTML = "";
+      calcTasks.forEach((t, idx) => {
+        const div = document.createElement("div");
+        div.className = "calc-card";
+        div.innerHTML = `
+          <div><strong>${t.title}</strong></div>
+          <p style="margin-top: 6px; font-size: 0.94rem;">${t.text}</p>
+          <div class="calc-row">
+            <input type="number" id="input-${t.id}" class="calc-input" placeholder="Ответ числом" />
+            <span style="font-weight: 600; color: var(--text-muted);">${t.unit}</span>
+            <button class="btn btn-sm btn-secondary" onclick="toggleCalcHint('${t.id}')">Подсказка</button>
+          </div>
+          <div class="hint-box" id="hint-${t.id}">${t.hint}</div>
+          <div class="feedback" id="fb-${t.id}"></div>
+        `;
+        box.appendChild(div);
+      });
+    }
+
+    function toggleCalcHint(id) {
+      const el = document.getElementById(`hint-${id}`);
+      el.style.display = el.style.display === "block" ? "none" : "block";
+    }
+
+    function checkAllCalcTasks() {
+      let solved = 0;
+      calcTasks.forEach(t => {
+        const raw = document.getElementById(`input-${t.id}`).value.trim();
+        const val = Number(raw);
+        const fb = document.getElementById(`fb-${t.id}`);
+        if (raw !== "" && val === t.answer) {
+          fb.style.color = "var(--success)";
+          fb.textContent = `Верно! Ответ: ${t.answer} ${t.unit}.`;
+          solved++;
+        } else {
+          fb.style.color = "var(--danger)";
+          fb.textContent = raw === "" ? "Введите числовой ответ." : "Неверно. Откройте подсказку и перепроверьте перевод единиц.";
+        }
+      });
+
+      const allFb = document.getElementById("calcAllFeedback");
+      if (solved === calcTasks.length) {
+        allFb.style.color = "var(--success)";
+        allFb.textContent = "Отлично! Все 4 задачи практической работы решены безошибочно!";
+        markStepDone(3);
+      } else {
+        allFb.style.color = "var(--warning)";
+        allFb.textContent = `Решено верно: ${solved} из ${calcTasks.length}.`;
+      }
+    }
+    renderCalcTasks();
+
+    // --- ЭТАП 4: ИТОГОВЫЙ ТЕСТ ---
+    const quizData = [
+      {
+        q: "1. В чём заключается суть пространственной дискретизации графического изображения?",
+        options: [
+          "В разбиении непрерывного изображения на отдельные элементы — пиксели",
+          "В сжатии файла архиватором ZIP",
+          "В переводе растрового рисунка в текстовый документ"
+        ],
+        correct: 0
+      },
+      {
+        q: "2. Как связаны количество цветов N в палитре и глубина цвета i (в битах)?",
+        options: [
+          "N = 2 × i",
+          "N = 2^i",
+          "i = 2^N"
+        ],
+        correct: 1
+      },
+      {
+        q: "3. Сколько цветов можно закодировать при глубине цвета i = 8 бит?",
+        options: ["64 цвета", "128 цветов", "256 цветов"],
+        correct: 2
+      },
+      {
+        q: "4. Какой объём памяти занимает один пиксель в стандартной модели RGB (True Color, 24 бита)?",
+        options: ["3 байта", "8 байт", "24 байта"],
+        correct: 0
+      },
+      {
+        q: "5. Что означает параметр сканера 600 dpi?",
+        options: [
+          "600 цветов в палитре сканера",
+          "600 точек (пикселей) на 1 дюйм длины",
+          "600 килобайт на один квадратный сантиметр"
+        ],
+        correct: 1
+      },
+      {
+        q: "6. Разрешение растрового изображения увеличили в 2 раза по ширине и в 2 раза по высоте (глубина цвета не изменилась). Во сколько раз вырос информационный объём файла?",
+        options: ["В 2 раза", "В 4 раза", "В 8 раз"],
+        correct: 1
+      },
+      {
+        q: "7. Чему равен информационный объём несжатого монохромного (чёрно-белого) изображения размером 128 × 64 пикселя?",
+        options: ["1 Кбайт", "8 Кбайт", "64 Кбайт"],
+        correct: 0
+      },
+      {
+        q: "8. Какой процесс отвечает за замену непрерывного диапазона яркости или цвета дискретными числовыми уровнями?",
+        options: ["Квантование", "Дефрагментация", "Компиляция"],
+        correct: 0
+      }
+    ];
+    const quizAnswers = {};
+
+    function renderQuiz() {
+      const box = document.getElementById("finalQuizContainer");
+      box.innerHTML = "";
+      quizData.forEach((item, qIdx) => {
+        const div = document.createElement("div");
+        div.className = "quiz-q";
+        div.innerHTML = `
+          <div><strong>${item.q}</strong></div>
+          <div id="quiz-opts-${qIdx}">
+            ${item.options.map((opt, oIdx) => `
+              <button class="quiz-opt" onclick="selectQuiz(${qIdx}, ${oIdx}, this)">${opt}</button>
+            `).join("")}
+          </div>
+        `;
+        box.appendChild(div);
+      });
+    }
+
+    function selectQuiz(qIdx, oIdx, btn) {
+      quizAnswers[qIdx] = oIdx;
+      const box = document.getElementById(`quiz-opts-${qIdx}`);
+      box.querySelectorAll(".quiz-opt").forEach(b => b.classList.remove("selected", "correct", "wrong"));
+      btn.classList.add("selected");
+    }
+
+    function finishLesson() {
+      if (Object.keys(quizAnswers).length < quizData.length) {
+        alert("Ответь на все 8 вопросов итогового контроля перед завершением работы!");
+        return;
+      }
+
+      let score = 0;
+      quizData.forEach((item, qIdx) => {
+        const chosen = quizAnswers[qIdx];
+        const box = document.getElementById(`quiz-opts-${qIdx}`);
+        box.querySelectorAll(".quiz-opt").forEach((b, oIdx) => {
+          b.classList.remove("selected", "correct", "wrong");
+          if (oIdx === item.correct) b.classList.add("correct");
+          else if (oIdx === chosen && chosen !== item.correct) b.classList.add("wrong");
+        });
+        if (chosen === item.correct) score++;
+      });
+
+      let grade = 2;
+      let label = "Нужно повторить тему";
+      if (score >= 7) { grade = 5; label = "Отлично"; }
+      else if (score >= 5) { grade = 4; label = "Хорошо"; }
+      else if (score >= 4) { grade = 3; label = "Удовлетворительно"; }
+
+      markStepDone(4);
+      const mins = Math.max(1, Math.round(state.secondsElapsed / 60));
+      const d = new Date();
+      const code = `INF10-PR5-${score}${grade}-${d.getDate()}${d.getMonth() + 1}`;
+
+      document.getElementById("certStudentName").textContent = state.studentName || "Ученик 10 класса";
+      document.getElementById("certGradeText").textContent = `Оценка: ${grade} (${label})`;
+      document.getElementById("certStats").textContent = `Правильных ответов в тесте: ${score} из ${quizData.length} • Время работы: ~${mins} мин.`;
+      document.getElementById("certCode").textContent = `Код проверки: ${code}`;
+      document.getElementById("certificateSection").style.display = "block";
+      document.getElementById("certificateSection").scrollIntoView({ behavior: "smooth" });
+    }
+
+    function resetAll() {
+      if (confirm("Сбросить прогресс и выполнить практическую работу заново?")) {
+        location.reload();
+      }
+    }
+
+    renderQuiz();
+  </script>
+</body>
+</html>
